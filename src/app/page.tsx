@@ -90,9 +90,6 @@ export default async function SubscriptionsPage() {
               Manage and monitor all customer subscriptions
             </p>
           </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl cursor-pointer">
-            Add New Subscription
-          </button>
         </div>
 
         {/* Subscription Cards */}
