@@ -229,7 +229,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
         {/* Action Buttons */}
         <div className="mt-8 flex flex-wrap gap-4 justify-center">
-          <CreateOrderButton />
+          <CreateOrderButton subscriptionId={subscription.id.toString()} />
           <ViewOrderButton subscriptionId={subscription.id.toString()} />
         </div>
       </div>
