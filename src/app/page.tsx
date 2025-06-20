@@ -91,7 +91,7 @@ export default function Subscriptions() {
               Manage and monitor all customer subscriptions
             </p>
           </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl cursor-pointer">
             Add New Subscription
           </button>
         </div>
@@ -199,7 +199,7 @@ export default function Subscriptions() {
             <p className="text-gray-600 mb-6">
               Get started by creating your first subscription
             </p>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 cursor-pointer">
               Create Subscription
             </button>
           </div>
