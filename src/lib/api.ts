@@ -15,6 +15,15 @@ export interface Subscription {
   updated_at: string;
 }
 
+export interface Order {
+  id: number;
+  subscription_id: number;
+  shopify_order_id: string;
+  shopify_order_number: string;
+  order_data: string;
+  created_at: string;
+}
+
 export interface SubscriptionStats {
   total: number;
   active: number;
@@ -29,6 +38,19 @@ export interface ApiResponse<T> {
   count?: number;
   message?: string;
   error?: string;
+}
+
+export interface OrderCreationResponse {
+  subscription: Subscription;
+  shopifyOrder: {
+    id: number;
+    order_number: number;
+    total_price: string;
+    currency: string;
+    financial_status: string;
+    // Additional Shopify order fields are stored as JSON string in order_data
+  };
+  orderRecord: Order;
 }
 
 const defaultHeaders = {
@@ -140,6 +162,42 @@ export const api = {
 
     if (!response.ok) {
       throw new Error("Failed to fetch subscription stats");
+    }
+
+    return response.json();
+  },
+
+  async createOrder(
+    subscriptionId: number
+  ): Promise<ApiResponse<OrderCreationResponse>> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/subscriptions/${subscriptionId}/order`,
+      {
+        method: "POST",
+        headers: defaultHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to create order");
+    }
+
+    return response.json();
+  },
+
+  async getSubscriptionOrders(
+    subscriptionId: string
+  ): Promise<ApiResponse<Order[]>> {
+    console.log(`${API_BASE_URL}/api/subscriptions/${subscriptionId}/orders`);
+    const response = await fetch(
+      `${API_BASE_URL}/api/subscriptions/${subscriptionId}/orders`,
+      {
+        headers: defaultHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch subscription orders");
     }
 
     return response.json();

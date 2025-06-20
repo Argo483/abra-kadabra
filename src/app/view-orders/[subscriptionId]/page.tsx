@@ -2,17 +2,17 @@ import React from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
-async function getCustomerSubscriptions(customerId: string) {
-  try {
-    const response = await api.getSubscriptions({ customer_id: customerId });
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch customer subscriptions:", error);
-    return [];
-  }
-}
+// async function getCustomerSubscriptions(customerId: string) {
+//   try {
+//     const response = await api.getSubscriptions({ customer_id: customerId });
+//     return response.data;
+//   } catch (error) {
+//     console.error("Failed to fetch customer subscriptions:", error);
+//     return [];
+//   }
+// }
 
-async function getSubscriptionOrders(subscriptionId: number) {
+async function getSubscriptionOrders(subscriptionId: string) {
   try {
     const response = await api.getSubscriptionOrders(subscriptionId);
     return response.data;
@@ -25,17 +25,10 @@ async function getSubscriptionOrders(subscriptionId: number) {
 export default async function Page({
   params,
 }: {
-  params: { customerId: string };
+  params: { subscriptionId: string };
 }) {
-  // First get all subscriptions for the customer
-  const subscriptions = await getCustomerSubscriptions(params.customerId);
-
-  // Then get all orders for each subscription
-  const ordersPromises = subscriptions.map((sub) =>
-    getSubscriptionOrders(sub.id)
-  );
-  const ordersResults = await Promise.all(ordersPromises);
-  const orders = ordersResults.flat();
+  const myParams = await params;
+  const orders = await getSubscriptionOrders(myParams.subscriptionId);
 
   // Calculate stats
   const totalOrders = orders.length;
@@ -96,7 +89,9 @@ export default async function Page({
               <h1 className="text-4xl font-bold text-white mb-2">
                 Customer Orders
               </h1>
-              <p className="text-blue-100">Customer ID: {params.customerId}</p>
+              <p className="text-blue-100">
+                Subscription ID: {myParams.subscriptionId}
+              </p>
             </div>
           </div>
 
@@ -108,7 +103,7 @@ export default async function Page({
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {subscriptions.length}
+                {orders.length}
               </div>
               <div className="text-blue-100 text-sm">Active Subscriptions</div>
             </div>
@@ -137,9 +132,9 @@ export default async function Page({
         <div className="grid gap-6">
           {orders.map((order) => {
             const orderData = JSON.parse(order.order_data);
-            const subscription = subscriptions.find(
-              (sub) => sub.id === order.subscription_id
-            );
+            // const subscription = subscriptions.find(
+            //   (sub) => sub.id === order.subscription_id
+            // );
 
             return (
               <div
@@ -157,7 +152,7 @@ export default async function Page({
                           Order #{order.shopify_order_number}
                         </h3>
                         <p className="text-gray-500 text-sm">
-                          Subscription: {subscription?.name || "Unknown"}
+                          Subscription: TODO
                         </p>
                       </div>
                     </div>

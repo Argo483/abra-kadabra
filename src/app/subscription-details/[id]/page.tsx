@@ -15,7 +15,8 @@ async function getSubscription(id: number) {
 }
 
 export default async function Page({ params }: { params: { id: string } }) {
-  const subscription = await getSubscription(parseInt(params.id, 10));
+  const myParams = await params;
+  const subscription = await getSubscription(parseInt(myParams.id, 10));
 
   if (!subscription) {
     return (
@@ -106,9 +107,9 @@ export default async function Page({ params }: { params: { id: string } }) {
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                #{subscription.shopify_order_number || "N/A"}
+                #{subscription.id || "N/A"}
               </div>
-              <div className="text-blue-100 text-sm">Order Number</div>
+              <div className="text-blue-100 text-sm">Subscription ID</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white capitalize">
@@ -208,11 +209,9 @@ export default async function Page({ params }: { params: { id: string } }) {
 
                 <div className="p-4 bg-gray-50 rounded-xl">
                   <h3 className="font-semibold text-gray-900 mb-2">
-                    Order Number
+                    Subscription ID
                   </h3>
-                  <p className="text-gray-600">
-                    #{subscription.shopify_order_number || "N/A"}
-                  </p>
+                  <p className="text-gray-600">#{subscription.id || "N/A"}</p>
                 </div>
 
                 <div className="p-4 bg-gray-50 rounded-xl">
@@ -231,7 +230,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         {/* Action Buttons */}
         <div className="mt-8 flex flex-wrap gap-4 justify-center">
           <CreateOrderButton />
-          <ViewOrderButton customerId={subscription.customer_id} />
+          <ViewOrderButton subscriptionId={subscription.id.toString()} />
         </div>
       </div>
     </div>

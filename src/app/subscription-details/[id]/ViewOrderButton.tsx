@@ -4,14 +4,14 @@ import React from "react";
 import { useRouter } from "next/navigation";
 
 export default function ViewOrderButton({
-  customerId,
+  subscriptionId,
 }: {
-  customerId: string;
+  subscriptionId: string;
 }) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/view-orders/${customerId}`);
+    router.push(`/view-orders/${subscriptionId}`);
   };
 
   return (
