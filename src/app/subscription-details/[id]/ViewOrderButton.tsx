@@ -3,17 +3,21 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 
-const ViewOrderButton = ({ customerId }: { customerId: string }) => {
+export default function ViewOrderButton({
+  customerId,
+}: {
+  customerId: string;
+}) {
   const router = useRouter();
 
-  const handleViewOrder = () => {
+  const handleClick = () => {
     router.push(`/view-orders/${customerId}`);
   };
 
   return (
     <button
-      onClick={handleViewOrder}
-      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 cursor-pointer"
+      onClick={handleClick}
+      className="bg-white hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl border border-gray-200 flex items-center gap-2 cursor-pointer"
     >
       <svg
         className="w-5 h-5"
@@ -25,12 +29,16 @@ const ViewOrderButton = ({ customerId }: { customerId: string }) => {
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
         />
       </svg>
-      View All Orders
+      View Orders
     </button>
   );
-};
-
-export default ViewOrderButton;
+}

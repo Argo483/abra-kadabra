@@ -1,45 +1,38 @@
 import React from "react";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
-const mockData = [
-  {
-    id: "13710",
-    name: "Adil Naqvi",
-    ordersProcessed: 69,
-    nextOrder: "1 Aug 2025, 00:30",
-    price: "A$61.99",
-  },
-  {
-    id: "13713",
-    name: "Adil Naqvi",
-    ordersProcessed: 68,
-    nextOrder: "1 Aug 2025, 00:30",
-    price: "A$71.99",
-  },
-  {
-    id: "15377",
-    name: "Mari CD",
-    ordersProcessed: 5,
-    nextOrder: "14 Jul 2025, 00:30",
-    price: "A$86.99",
-  },
-];
+async function getSubscriptions() {
+  try {
+    const response = await api.getSubscriptions();
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch subscriptions:", error);
+    return [];
+  }
+}
 
-// Uncomment and replace with real API endpoint
-// const fetchData = async () => {
-//   const response = await fetch('/api/subscriptions');
-//   const data = await response.json();
-//   return data;
-// };
+async function getSubscriptionStats() {
+  try {
+    const response = await api.getSubscriptionStats();
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch subscription stats:", error);
+    return {
+      total: 0,
+      active: 0,
+      inactive: 0,
+      cancelled: 0,
+      totalRevenue: 0,
+    };
+  }
+}
 
-export default function Subscriptions() {
-  const totalSubscriptions = mockData.length;
-  const activeSubscriptions = mockData.filter(
-    (sub) => sub.ordersProcessed > 0
-  ).length;
-  const totalRevenue = mockData
-    .filter((sub) => sub.price !== "N/A")
-    .reduce((sum, sub) => sum + parseFloat(sub.price.replace("A$", "")), 0);
+export default async function SubscriptionsPage() {
+  const [subscriptions, stats] = await Promise.all([
+    getSubscriptions(),
+    getSubscriptionStats(),
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -56,22 +49,28 @@ export default function Subscriptions() {
             </p>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <div className="text-3xl font-bold text-white">
-                  {totalSubscriptions}
+                  {stats.total}
                 </div>
                 <div className="text-blue-100 mt-1">Total Subscriptions</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <div className="text-3xl font-bold text-white">
-                  {activeSubscriptions}
+                  {stats.active}
                 </div>
                 <div className="text-blue-100 mt-1">Active Subscriptions</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <div className="text-3xl font-bold text-white">
-                  A${totalRevenue.toFixed(2)}
+                  {stats.inactive + stats.cancelled}
+                </div>
+                <div className="text-blue-100 mt-1">Inactive Subscriptions</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-white">
+                  ${stats.totalRevenue.toFixed(2)}
                 </div>
                 <div className="text-blue-100 mt-1">Monthly Revenue</div>
               </div>
@@ -98,7 +97,7 @@ export default function Subscriptions() {
 
         {/* Subscription Cards */}
         <div className="grid gap-6">
-          {mockData.map((subscription) => (
+          {subscriptions.map((subscription) => (
             <Link
               key={subscription.id}
               href={`/subscription-details/${subscription.id}`}
@@ -126,17 +125,17 @@ export default function Subscriptions() {
                         <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                         <span className="text-sm text-gray-600">
                           <span className="font-semibold text-gray-900">
-                            {subscription.ordersProcessed}
+                            {subscription.billing_cycle}
                           </span>{" "}
-                          orders processed
+                          billing
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                         <span className="text-sm text-gray-600">
-                          Next:{" "}
+                          Order:{" "}
                           <span className="font-semibold text-gray-900">
-                            {subscription.nextOrder}
+                            #{subscription.shopify_order_number || "N/A"}
                           </span>
                         </span>
                       </div>
@@ -145,7 +144,7 @@ export default function Subscriptions() {
                         <span className="text-sm text-gray-600">
                           Price:{" "}
                           <span className="font-semibold text-gray-900">
-                            {subscription.price}
+                            ${subscription.price}
                           </span>
                         </span>
                       </div>
@@ -155,18 +154,21 @@ export default function Subscriptions() {
                   <div className="flex flex-col items-end gap-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        subscription.ordersProcessed > 0
+                        subscription.status === "active"
                           ? "bg-blue-100 text-blue-700"
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {subscription.ordersProcessed > 0 ? "Active" : "Inactive"}
+                      {subscription.status.charAt(0).toUpperCase() +
+                        subscription.status.slice(1)}
                     </span>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-gray-900">
-                        {subscription.price}
+                        ${subscription.price}
                       </div>
-                      <div className="text-xs text-gray-500">per month</div>
+                      <div className="text-xs text-gray-500">
+                        per {subscription.billing_cycle.slice(0, -2)}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -176,7 +178,7 @@ export default function Subscriptions() {
         </div>
 
         {/* Empty State (if no subscriptions) */}
-        {mockData.length === 0 && (
+        {subscriptions.length === 0 && (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg

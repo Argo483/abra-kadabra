@@ -1,81 +1,30 @@
 import React from "react";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
-const mockOrders = [
-  {
-    orderId: "100942",
-    date: "Today at 1:43 am",
-    customer: "Adil Naqvi",
-    channel: "Headless frontend",
-    total: "$47.90",
-    paymentStatus: "Paid",
-    fulfillmentStatus: "Unfulfilled",
-    items: "7 Items",
-    deliveryStatus: "Standard",
-    tags: "Subscription #15470",
-  },
-  {
-    orderId: "100943",
-    date: "Yesterday at 3:15 pm",
-    customer: "Adil Naqvi",
-    channel: "Online",
-    total: "$30.00",
-    paymentStatus: "Paid",
-    fulfillmentStatus: "Fulfilled",
-    items: "3 Items",
-    deliveryStatus: "Express",
-    tags: "Subscription #15471",
-  },
-  {
-    orderId: "100944",
-    date: "2 days ago at 11:00 am",
-    customer: "Adil Naqvi",
-    channel: "Retail",
-    total: "$15.50",
-    paymentStatus: "Pending",
-    fulfillmentStatus: "Unfulfilled",
-    items: "1 Item",
-    deliveryStatus: "Standard",
-    tags: "Subscription #15472",
-  },
-  // Add more mock orders as needed
-];
-
-const getStatusColor = (status: string, type: "payment" | "fulfillment") => {
-  if (type === "payment") {
-    switch (status.toLowerCase()) {
-      case "paid":
-        return "bg-green-100 text-green-700";
-      case "pending":
-        return "bg-yellow-100 text-yellow-700";
-      case "failed":
-        return "bg-red-100 text-red-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  } else {
-    switch (status.toLowerCase()) {
-      case "fulfilled":
-        return "bg-blue-100 text-blue-700";
-      case "unfulfilled":
-        return "bg-orange-100 text-orange-700";
-      case "partially fulfilled":
-        return "bg-purple-100 text-purple-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
+async function getCustomerSubscriptions(customerId: string) {
+  try {
+    const response = await api.getSubscriptions({ customer_id: customerId });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch customer subscriptions:", error);
+    return [];
   }
-};
+}
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ customerId: string }>;
+  params: { customerId: string };
 }) {
-  const { customerId } = await params;
-  const orders = mockOrders.filter((order) => order.customer === "Adil Naqvi");
-  const customerName =
-    orders.length > 0 ? orders[0].customer : `Customer ${customerId}`;
+  const subscriptions = await getCustomerSubscriptions(params.customerId);
+  const totalRevenue = subscriptions.reduce(
+    (sum, sub) => sum + parseFloat(sub.price),
+    0
+  );
+  const activeSubscriptions = subscriptions.filter(
+    (sub) => sub.status === "active"
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -106,51 +55,45 @@ export default async function Page({
 
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white font-bold text-2xl border border-white/30">
-              {customerName.charAt(0).toUpperCase()}
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white mb-2">
-                Order History
+                Customer Orders
               </h1>
-              <p className="text-blue-100">
-                {customerName} • Customer ID: {customerId}
-              </p>
+              <p className="text-blue-100">Customer ID: {params.customerId}</p>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {orders.length}
+                {subscriptions.length}
               </div>
-              <div className="text-blue-100 text-sm">Total Orders</div>
+              <div className="text-blue-100 text-sm">Total Subscriptions</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {orders.filter((o) => o.paymentStatus === "Paid").length}
+                {activeSubscriptions}
               </div>
-              <div className="text-blue-100 text-sm">Paid Orders</div>
+              <div className="text-blue-100 text-sm">Active Subscriptions</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {
-                  orders.filter((o) => o.fulfillmentStatus === "Fulfilled")
-                    .length
-                }
-              </div>
-              <div className="text-blue-100 text-sm">Fulfilled Orders</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="text-2xl font-bold text-white">
-                $
-                {orders
-                  .reduce(
-                    (sum, order) =>
-                      sum + parseFloat(order.total.replace("$", "")),
-                    0
-                  )
-                  .toFixed(2)}
+                ${totalRevenue.toFixed(2)}
               </div>
               <div className="text-blue-100 text-sm">Total Revenue</div>
             </div>
@@ -163,128 +106,103 @@ export default async function Page({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Recent Orders
+              Subscription History
             </h2>
-            <p className="text-gray-600">Complete order history and details</p>
+            <p className="text-gray-600">
+              View and manage customer subscriptions
+            </p>
           </div>
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl cursor-pointer">
             Export Orders
           </button>
         </div>
 
-        {/* Orders Grid - Mobile Friendly */}
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-              key={order.orderId}
-              className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 p-6"
+        {/* Subscription Cards */}
+        <div className="grid gap-6">
+          {subscriptions.map((subscription) => (
+            <Link
+              key={subscription.id}
+              href={`/subscription-details/${subscription.id}`}
+              className="group"
             >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Order Info */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold">
-                    #{order.orderId.slice(-3)}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Order #{order.orderId}
-                    </h3>
-                    <p className="text-gray-600 text-sm">{order.date}</p>
-                  </div>
-                </div>
+              <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 p-6 group-hover:scale-[1.02]">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                        {subscription.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {subscription.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          ID: {subscription.id}
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Order Details Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 flex-1 lg:max-w-4xl">
-                  <div className="text-center lg:text-left">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                      Channel
-                    </p>
-                    <p className="font-semibold text-gray-900">
-                      {order.channel}
-                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          <span className="font-semibold text-gray-900">
+                            {subscription.billing_cycle}
+                          </span>{" "}
+                          billing
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          Order:{" "}
+                          <span className="font-semibold text-gray-900">
+                            #{subscription.shopify_order_number || "N/A"}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          Created:{" "}
+                          <span className="font-semibold text-gray-900">
+                            {new Date(
+                              subscription.created_at
+                            ).toLocaleDateString()}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="text-center lg:text-left">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                      Items
-                    </p>
-                    <p className="font-semibold text-gray-900">{order.items}</p>
-                  </div>
-
-                  <div className="text-center lg:text-left">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                      Payment
-                    </p>
+                  <div className="flex flex-col items-end gap-3">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        order.paymentStatus,
-                        "payment"
-                      )}`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        subscription.status === "active"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
                     >
-                      {order.paymentStatus}
+                      {subscription.status.charAt(0).toUpperCase() +
+                        subscription.status.slice(1)}
                     </span>
-                  </div>
-
-                  <div className="text-center lg:text-left">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                      Fulfillment
-                    </p>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        order.fulfillmentStatus,
-                        "fulfillment"
-                      )}`}
-                    >
-                      {order.fulfillmentStatus}
-                    </span>
-                  </div>
-
-                  <div className="text-center lg:text-right col-span-2 lg:col-span-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                      Total
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {order.total}
-                    </p>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-gray-900">
+                        ${subscription.price}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        per {subscription.billing_cycle.slice(0, -2)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Additional Info */}
-              <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                      />
-                    </svg>
-                    {order.deliveryStatus}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">
-                    {order.tags}
-                  </span>
-                  <button className="text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer">
-                    View Details
-                  </button>
-                </div>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
 
         {/* Empty State */}
-        {orders.length === 0 && (
+        {subscriptions.length === 0 && (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
@@ -297,19 +215,19 @@ export default async function Page({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No orders found
+              No subscriptions found
             </h3>
             <p className="text-gray-600 mb-6">
-              This customer hasn't placed any orders yet
+              This customer doesn&apos;t have any subscriptions yet
             </p>
             <Link
               href="/"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 cursor-pointer"
             >
               Back to Dashboard
             </Link>

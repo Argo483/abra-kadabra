@@ -2,72 +2,20 @@ import React from "react";
 import Link from "next/link";
 import CreateOrderButton from "./CreateOrderButton";
 import ViewOrderButton from "./ViewOrderButton";
+import { api } from "@/lib/api";
 
-const mockData = [
-  {
-    id: "14970",
-    name: "testreftrailingdiscountdirect test",
-    ordersProcessed: 0,
-    nextOrder: "N/A",
-    price: "N/A",
-    amountSpent: "$0.00",
-    orders: 0,
-    customerSince: "4 months",
-    lastOrder: "This is a test order. Payment not processed.",
-    customerInfo: "testreftrailingdiscountdirect@test.com",
-    paymentMethod: "1 saved card",
-    address: "1-31 DOMAIN ST, FAWKNER, SOUTH YARRA Victoria 3141, Australia",
-    phone: "+61 403 553 331",
-    marketing: "Email not subscribed, SMS not subscribed",
-  },
-  {
-    id: "13710",
-    name: "Adil Naqvi",
-    ordersProcessed: 69,
-    nextOrder: "1 Aug 2025, 00:30",
-    price: "A$61.99",
-    amountSpent: "$61.99",
-    orders: 69,
-    customerSince: "2 years",
-    lastOrder: "Order #24206 on February 13, 2025",
-    customerInfo: "adilnaqvi@test.com",
-    paymentMethod: "2 saved cards",
-  },
-  {
-    id: "13713",
-    name: "Adil Naqvi",
-    ordersProcessed: 68,
-    nextOrder: "1 Aug 2025, 00:30",
-    price: "A$71.99",
-    amountSpent: "$71.99",
-    orders: 68,
-    customerSince: "2 years",
-    lastOrder: "Order #24205 on February 12, 2025",
-    customerInfo: "adilnaqvi@test.com",
-    paymentMethod: "2 saved cards",
-  },
-  {
-    id: "15377",
-    name: "Mari CD",
-    ordersProcessed: 5,
-    nextOrder: "14 Jul 2025, 00:30",
-    price: "A$86.99",
-    amountSpent: "$86.99",
-    orders: 5,
-    customerSince: "6 months",
-    lastOrder: "Order #24204 on February 11, 2025",
-    customerInfo: "maricd@test.com",
-    paymentMethod: "1 saved card",
-  },
-];
+async function getSubscription(id: number) {
+  try {
+    const response = await api.getSubscriptionById(id);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch subscription:", error);
+    return null;
+  }
+}
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const subscription = mockData.find((sub) => sub.id === id);
+export default async function Page({ params }: { params: { id: string } }) {
+  const subscription = await getSubscription(parseInt(params.id, 10));
 
   if (!subscription) {
     return (
@@ -92,7 +40,7 @@ export default async function Page({
             Subscription Not Found
           </h2>
           <p className="text-gray-600 mb-6">
-            The subscription you're looking for doesn't exist.
+            The subscription you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link
             href="/"
@@ -150,25 +98,29 @@ export default async function Page({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {subscription.amountSpent}
+                ${subscription.price}
               </div>
-              <div className="text-blue-100 text-sm">Amount Spent</div>
+              <div className="text-blue-100 text-sm">
+                Price per {subscription.billing_cycle.slice(0, -2)}
+              </div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {subscription.orders}
+                #{subscription.shopify_order_number || "N/A"}
               </div>
-              <div className="text-blue-100 text-sm">Total Orders</div>
+              <div className="text-blue-100 text-sm">Order Number</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="text-2xl font-bold text-white">
-                {subscription.customerSince}
+              <div className="text-2xl font-bold text-white capitalize">
+                {subscription.billing_cycle}
               </div>
-              <div className="text-blue-100 text-sm">Customer Since</div>
+              <div className="text-blue-100 text-sm">Billing Cycle</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="text-lg font-bold text-white">Prospects</div>
-              <div className="text-blue-100 text-sm">RFM Group</div>
+              <div className="text-lg font-bold text-white capitalize">
+                {subscription.status}
+              </div>
+              <div className="text-blue-100 text-sm">Status</div>
             </div>
           </div>
         </div>
@@ -177,7 +129,7 @@ export default async function Page({
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Last Order Section */}
+          {/* Subscription Details */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center">
@@ -195,44 +147,43 @@ export default async function Page({
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Last Order</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Subscription Details
+              </h2>
             </div>
 
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-gray-900 font-semibold mb-2">
-                  {subscription.lastOrder}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  Order #24206 on February 13, 2025
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Description
+                </h3>
+                <p className="text-gray-600">
+                  {subscription.description || "No description available"}
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900">Order Items:</h3>
-                <ul className="space-y-2">
-                  <li className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-900">
-                      Stanley St. Aromatic Beef Rendang Curry x 1
-                    </span>
-                    <span className="font-semibold text-gray-900">$29.95</span>
-                  </li>
-                  <li className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-900">
-                      Greek Chicken Burgers with Feta Chips x 1
-                    </span>
-                    <span className="font-semibold text-gray-900">$0.00</span>
-                  </li>
-                  <li className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-900">Chicken Lo Mein x 1</span>
-                    <span className="font-semibold text-gray-900">$0.00</span>
-                  </li>
-                </ul>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Customer ID
+                </h3>
+                <p className="text-gray-600">{subscription.customer_id}</p>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <h3 className="font-semibold text-gray-900 mb-2">Product ID</h3>
+                <p className="text-gray-600">{subscription.product_id}</p>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <h3 className="font-semibold text-gray-900 mb-2">Created At</h3>
+                <p className="text-gray-600">
+                  {new Date(subscription.created_at).toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Customer Information */}
+          {/* Shopify Order Details */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-xl flex items-center justify-center">
@@ -251,50 +202,36 @@ export default async function Page({
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900">
-                Customer Details
+                Shopify Order Details
               </h2>
             </div>
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 bg-gray-50 rounded-xl">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Contact Information
-                  </h3>
-                  <p className="text-gray-600">{subscription.customerInfo}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2">Order ID</h3>
+                  <p className="text-gray-600">
+                    {subscription.shopify_order_id || "N/A"}
+                  </p>
                 </div>
-
-                {subscription.address && (
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      Default Address
-                    </h3>
-                    <p className="text-gray-600">{subscription.address}</p>
-                  </div>
-                )}
-
-                {subscription.phone && (
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <h3 className="font-semibold text-gray-900 mb-2">Phone</h3>
-                    <p className="text-gray-600">{subscription.phone}</p>
-                  </div>
-                )}
 
                 <div className="p-4 bg-gray-50 rounded-xl">
                   <h3 className="font-semibold text-gray-900 mb-2">
-                    Payment Method
+                    Order Number
                   </h3>
-                  <p className="text-gray-600">{subscription.paymentMethod}</p>
+                  <p className="text-gray-600">
+                    #{subscription.shopify_order_number || "N/A"}
+                  </p>
                 </div>
 
-                {subscription.marketing && (
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      Marketing Preferences
-                    </h3>
-                    <p className="text-gray-600">{subscription.marketing}</p>
-                  </div>
-                )}
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Last Updated
+                  </h3>
+                  <p className="text-gray-600">
+                    {new Date(subscription.updated_at).toLocaleString()}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -303,7 +240,7 @@ export default async function Page({
         {/* Action Buttons */}
         <div className="mt-8 flex flex-wrap gap-4 justify-center">
           <CreateOrderButton />
-          <ViewOrderButton customerId={subscription.id} />
+          <ViewOrderButton customerId={subscription.customer_id} />
         </div>
       </div>
     </div>
