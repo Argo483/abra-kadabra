@@ -3,13 +3,6 @@ import Link from "next/link";
 
 const mockData = [
   {
-    id: "14970",
-    name: "testreftrailingdiscountdirect test",
-    ordersProcessed: 0,
-    nextOrder: "N/A",
-    price: "N/A",
-  },
-  {
     id: "13710",
     name: "Adil Naqvi",
     ordersProcessed: 69,
@@ -40,44 +33,177 @@ const mockData = [
 // };
 
 export default function Subscriptions() {
+  const totalSubscriptions = mockData.length;
+  const activeSubscriptions = mockData.filter(
+    (sub) => sub.ordersProcessed > 0
+  ).length;
+  const totalRevenue = mockData
+    .filter((sub) => sub.price !== "N/A")
+    .reduce((sum, sub) => sum + parseFloat(sub.price.replace("A$", "")), 0);
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="p-6 max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Subscriptions</h1>
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <ul className="divide-y divide-gray-200">
-            {mockData.map((subscription) => (
-              <li key={subscription.id} className="px-4 py-4 sm:px-6">
-                <Link href={`/subscription-details/${subscription.id}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-indigo-600 truncate">
-                      {subscription.name}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              Subscription Manager
+            </h1>
+            <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+              Manage and track all your customer subscriptions in one beautiful
+              dashboard
+            </p>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-white">
+                  {totalSubscriptions}
+                </div>
+                <div className="text-blue-100 mt-1">Total Subscriptions</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-white">
+                  {activeSubscriptions}
+                </div>
+                <div className="text-blue-100 mt-1">Active Subscriptions</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-white">
+                  A${totalRevenue.toFixed(2)}
+                </div>
+                <div className="text-blue-100 mt-1">Monthly Revenue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Your Subscriptions
+            </h2>
+            <p className="text-gray-600">
+              Manage and monitor all customer subscriptions
+            </p>
+          </div>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl">
+            Add New Subscription
+          </button>
+        </div>
+
+        {/* Subscription Cards */}
+        <div className="grid gap-6">
+          {mockData.map((subscription) => (
+            <Link
+              key={subscription.id}
+              href={`/subscription-details/${subscription.id}`}
+              className="group"
+            >
+              <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 p-6 group-hover:scale-[1.02]">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                        {subscription.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {subscription.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          ID: {subscription.id}
+                        </p>
+                      </div>
                     </div>
-                    <div className="ml-2 flex-shrink-0 flex">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Active
-                      </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          <span className="font-semibold text-gray-900">
+                            {subscription.ordersProcessed}
+                          </span>{" "}
+                          orders processed
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          Next:{" "}
+                          <span className="font-semibold text-gray-900">
+                            {subscription.nextOrder}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          Price:{" "}
+                          <span className="font-semibold text-gray-900">
+                            {subscription.price}
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </Link>
-                <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="sm:flex">
-                    <div className="mr-6 flex items-center text-sm text-gray-500">
-                      {subscription.ordersProcessed} subscription orders
-                      processed
+
+                  <div className="flex flex-col items-end gap-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        subscription.ordersProcessed > 0
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {subscription.ordersProcessed > 0 ? "Active" : "Inactive"}
+                    </span>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-gray-900">
+                        {subscription.price}
+                      </div>
+                      <div className="text-xs text-gray-500">per month</div>
                     </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                      Next order: {subscription.nextOrder}
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    {subscription.price}
                   </div>
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </Link>
+          ))}
         </div>
+
+        {/* Empty State (if no subscriptions) */}
+        {mockData.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-12 h-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No subscriptions yet
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Get started by creating your first subscription
+            </p>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200">
+              Create Subscription
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
