@@ -74,42 +74,44 @@ export default async function Page({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <Link href="/" className="text-indigo-600 mb-4">
-        Back to list
-      </Link>
-      <h1 className="text-2xl font-bold mb-4">{subscription.name}</h1>
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg p-4">
-        <div className="flex justify-between mb-4">
-          <span>Amount spent: {subscription.amountSpent}</span>
-          <span>Orders: {subscription.orders}</span>
-          <span>Customer since: {subscription.customerSince}</span>
-          <span>RFM group: Prospects</span>
-        </div>
-        <div className="mb-4">
-          <h2 className="font-bold">Last order placed</h2>
-          <p>{subscription.lastOrder}</p>
-          <p>Order #24206 on February 13, 2025</p>
-          <ul>
-            <li>Stanley St. Aromatic Beef Rendang Curry x 1 - $29.95</li>
-            <li>Greek Chicken Burgers with Feta Chips x 1 - $0.00</li>
-            <li>Chicken Lo Mein x 1 - $0.00</li>
-          </ul>
-        </div>
-        <div className="mb-4">
-          <h2 className="font-bold">Customer</h2>
-          <p>Contact information: {subscription.customerInfo}</p>
-          <p>Default address: {subscription.address}</p>
-          <p>Phone: {subscription.phone}</p>
-          <p>Marketing: {subscription.marketing}</p>
-        </div>
-        <div className="mb-4">
-          <h2 className="font-bold">Payment method</h2>
-          <p>{subscription.paymentMethod}</p>
-        </div>
-        <div className="flex space-x-4">
-          <CreateOrderButton />
-          <ViewOrderButton customerId={subscription.id} />
+    <div className="min-h-screen bg-gray-100">
+      <div className="p-6 max-w-7xl mx-auto">
+        <Link href="/" className="text-indigo-600 mb-4">
+          Back to list
+        </Link>
+        <h1 className="text-2xl font-bold mb-4">{subscription.name}</h1>
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg p-4">
+          <div className="flex justify-between mb-4">
+            <span>Amount spent: {subscription.amountSpent}</span>
+            <span>Orders: {subscription.orders}</span>
+            <span>Customer since: {subscription.customerSince}</span>
+            <span>RFM group: Prospects</span>
+          </div>
+          <div className="mb-4">
+            <h2 className="font-bold">Last order placed</h2>
+            <p>{subscription.lastOrder}</p>
+            <p>Order #24206 on February 13, 2025</p>
+            <ul>
+              <li>Stanley St. Aromatic Beef Rendang Curry x 1 - $29.95</li>
+              <li>Greek Chicken Burgers with Feta Chips x 1 - $0.00</li>
+              <li>Chicken Lo Mein x 1 - $0.00</li>
+            </ul>
+          </div>
+          <div className="mb-4">
+            <h2 className="font-bold">Customer</h2>
+            <p>Contact information: {subscription.customerInfo}</p>
+            <p>Default address: {subscription.address}</p>
+            <p>Phone: {subscription.phone}</p>
+            <p>Marketing: {subscription.marketing}</p>
+          </div>
+          <div className="mb-4">
+            <h2 className="font-bold">Payment method</h2>
+            <p>{subscription.paymentMethod}</p>
+          </div>
+          <div className="flex space-x-4">
+            <CreateOrderButton />
+            <ViewOrderButton customerId={subscription.id} />
+          </div>
         </div>
       </div>
     </div>
