@@ -155,15 +155,6 @@ export default async function Page({ params }: { params: { id: string } }) {
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-xl">
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  Description
-                </h3>
-                <p className="text-gray-600">
-                  {subscription.description || "No description available"}
-                </p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <h3 className="font-semibold text-gray-900 mb-2">
                   Customer ID
                 </h3>
                 <p className="text-gray-600">{subscription.customer_id}</p>

@@ -12,19 +12,42 @@ async function getCustomerSubscriptions(customerId: string) {
   }
 }
 
+async function getSubscriptionOrders(subscriptionId: number) {
+  try {
+    const response = await api.getSubscriptionOrders(subscriptionId);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch subscription orders:", error);
+    return [];
+  }
+}
+
 export default async function Page({
   params,
 }: {
   params: { customerId: string };
 }) {
+  // First get all subscriptions for the customer
   const subscriptions = await getCustomerSubscriptions(params.customerId);
-  const totalRevenue = subscriptions.reduce(
-    (sum, sub) => sum + parseFloat(sub.price),
-    0
+
+  // Then get all orders for each subscription
+  const ordersPromises = subscriptions.map((sub) =>
+    getSubscriptionOrders(sub.id)
   );
-  const activeSubscriptions = subscriptions.filter(
-    (sub) => sub.status === "active"
-  ).length;
+  const ordersResults = await Promise.all(ordersPromises);
+  const orders = ordersResults.flat();
+
+  // Calculate stats
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum, order) => {
+    try {
+      const orderData = JSON.parse(order.order_data);
+      return sum + parseFloat(orderData.total_price || "0");
+    } catch (error) {
+      console.error("Failed to parse order data:", error);
+      return sum;
+    }
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -65,7 +88,7 @@ export default async function Page({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                 />
               </svg>
             </div>
@@ -80,14 +103,12 @@ export default async function Page({
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="text-2xl font-bold text-white">
-                {subscriptions.length}
-              </div>
-              <div className="text-blue-100 text-sm">Total Subscriptions</div>
+              <div className="text-2xl font-bold text-white">{totalOrders}</div>
+              <div className="text-blue-100 text-sm">Total Orders</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="text-2xl font-bold text-white">
-                {activeSubscriptions}
+                {subscriptions.length}
               </div>
               <div className="text-blue-100 text-sm">Active Subscriptions</div>
             </div>
@@ -106,38 +127,37 @@ export default async function Page({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Subscription History
+              Order History
             </h2>
-            <p className="text-gray-600">
-              View and manage customer subscriptions
-            </p>
+            <p className="text-gray-600">View all customer orders</p>
           </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl cursor-pointer">
-            Export Orders
-          </button>
         </div>
 
-        {/* Subscription Cards */}
+        {/* Order Cards */}
         <div className="grid gap-6">
-          {subscriptions.map((subscription) => (
-            <Link
-              key={subscription.id}
-              href={`/subscription-details/${subscription.id}`}
-              className="group"
-            >
-              <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 p-6 group-hover:scale-[1.02]">
+          {orders.map((order) => {
+            const orderData = JSON.parse(order.order_data);
+            const subscription = subscriptions.find(
+              (sub) => sub.id === order.subscription_id
+            );
+
+            return (
+              <div
+                key={order.id}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 p-6"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                        {subscription.name.charAt(0).toUpperCase()}
+                        #{order.shopify_order_number}
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {subscription.name}
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          Order #{order.shopify_order_number}
                         </h3>
                         <p className="text-gray-500 text-sm">
-                          ID: {subscription.id}
+                          Subscription: {subscription?.name || "Unknown"}
                         </p>
                       </div>
                     </div>
@@ -146,63 +166,47 @@ export default async function Page({
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                         <span className="text-sm text-gray-600">
+                          Status:{" "}
                           <span className="font-semibold text-gray-900">
-                            {subscription.billing_cycle}
-                          </span>{" "}
-                          billing
+                            {orderData.financial_status}
+                          </span>
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                         <span className="text-sm text-gray-600">
-                          Order:{" "}
+                          Created:{" "}
                           <span className="font-semibold text-gray-900">
-                            #{subscription.shopify_order_number || "N/A"}
+                            {new Date(order.created_at).toLocaleDateString()}
                           </span>
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
                         <span className="text-sm text-gray-600">
-                          Created:{" "}
+                          Currency:{" "}
                           <span className="font-semibold text-gray-900">
-                            {new Date(
-                              subscription.created_at
-                            ).toLocaleDateString()}
+                            {orderData.currency}
                           </span>
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        subscription.status === "active"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {subscription.status.charAt(0).toUpperCase() +
-                        subscription.status.slice(1)}
-                    </span>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">
-                        ${subscription.price}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        per {subscription.billing_cycle.slice(0, -2)}
-                      </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">
+                      ${parseFloat(orderData.total_price).toFixed(2)}
                     </div>
+                    <div className="text-xs text-gray-500">Order Total</div>
                   </div>
                 </div>
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty State */}
-        {subscriptions.length === 0 && (
+        {orders.length === 0 && (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
@@ -220,10 +224,10 @@ export default async function Page({
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No subscriptions found
+              No orders found
             </h3>
             <p className="text-gray-600 mb-6">
-              This customer doesn&apos;t have any subscriptions yet
+              This customer doesn&apos;t have any orders yet
             </p>
             <Link
               href="/"

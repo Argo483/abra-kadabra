@@ -84,7 +84,7 @@ export default async function SubscriptionsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Your Subscriptions
+              Subscriptions
             </h2>
             <p className="text-gray-600">
               Manage and monitor all customer subscriptions
