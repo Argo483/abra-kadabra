@@ -170,13 +170,10 @@ export const api = {
   async createOrder(
     subscriptionId: number
   ): Promise<ApiResponse<OrderCreationResponse>> {
-    const response = await fetch(
-      `${API_BASE_URL}/api/subscriptions/${subscriptionId}/order`,
-      {
-        method: "POST",
-        headers: defaultHeaders,
-      }
-    );
+    const response = await fetch(`/api/subscriptions/${subscriptionId}/order`, {
+      method: "POST",
+      headers: defaultHeaders,
+    });
 
     if (!response.ok) {
       throw new Error("Failed to create order");
