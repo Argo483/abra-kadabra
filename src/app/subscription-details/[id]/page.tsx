@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import CreateOrderButton from "./CreateOrderButton";
+import ViewOrderButton from "./ViewOrderButton";
 
 const mockData = [
   {
@@ -104,6 +106,10 @@ export default async function Page({
         <div className="mb-4">
           <h2 className="font-bold">Payment method</h2>
           <p>{subscription.paymentMethod}</p>
+        </div>
+        <div className="flex space-x-4">
+          <CreateOrderButton />
+          <ViewOrderButton customerId={subscription.id} />
         </div>
       </div>
     </div>
